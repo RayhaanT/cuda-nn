@@ -6,7 +6,7 @@ TARGET = nn
 BIN = bin
 INC_DIR = include
 SRC_DIR = src
-INCLUDES = -iquote $(INC_DIR)
+INCLUDES = -I $(INC_DIR)
 
 CXXFLAGS = -Wall -MMD
 CFLAGS = -Wall -MMD
@@ -31,7 +31,7 @@ $(BIN)/%.o: $(SRC_DIR)/%.c
 	$(CC) -c $(CFLAGS) $(INCLUDES) -o $@ $<
 
 $(BIN)/%.o: $(SRC_DIR)/%.cu
-	$(NVCC) $(CUFLAGS) -o $@ -c $<
+	$(NVCC) $(CUFLAGS) $(INCLUDES) -o $@ -c $<
 
 $(TARGET): $(OBJS)
 	$(CXX) -o $@ $^ $(LDFLAGS)
