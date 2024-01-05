@@ -1,30 +1,48 @@
 #include "matrix.h"
+#include <utility>
 
-Matrix::Matrix(Shape shape) :
-    deviceAllocated(false), hostAllocated(false), shape(shape) { }
+MatrixBuffer::MatrixBuffer(Shape shape) :
+    data(nullptr), allocated(false), shape(shape) { }
 
-void Matrix::allocateHostMem() {
-    if (!hostAllocated) {
-        dataHost = std::unique_ptr<float>(new float[shape.width*shape.height]);
-        hostAllocated = true;
+MatrixBuffer::MatrixBuffer(MatrixBuffer&& buf) :
+    data(std::move(buf.data)), allocated(buf.isAllocated()), shape(buf.shape) {}
+
+void MatrixBuffer::allocate() {
+    if (!allocated) {
+        float* device_memory = nullptr;
+        cudaMalloc(&device_memory, shape.x * shape.x * sizeof(float));
+        data = std::unique_ptr<float>(device_memory);
+        allocated = true;
     }
 }
 
-void Matrix::allocateDeviceMem() {
-    if (!deviceAllocated) {
-        float* device_memory = nullptr;
-        cudaMalloc(&device_memory, shape.width * shape.width * sizeof(float));
-        dataDevice = std::unique_ptr<float>(device_memory);
-        deviceAllocated = true;
-    }
+void MatrixBuffer::write(float* from) {
+    cudaMemcpy(data.get(), from, shape.x * shape.y * sizeof(float), cudaMemcpyHostToDevice);
+}
+
+void MatrixBuffer::read(float* to) {
+    cudaMemcpy(to, data.get(), shape.x * shape.y * sizeof(float), cudaMemcpyDeviceToHost);
+}
+
+Matrix::Matrix(Shape shape) :
+    deviceAllocated(false), shape(shape), dataDevice(shape)
+{
+    dataHost = std::unique_ptr<float>(new float[shape.x*shape.y]);
+}
+
+Matrix::Matrix(MatrixBuffer &&buf) :
+    deviceAllocated(buf.isAllocated()),
+    dataDevice(std::move(buf)),
+    shape(buf.shape)
+{
+    dataHost = std::unique_ptr<float>(new float[shape.x*shape.y]);
 }
 
 void Matrix::writeThrough() {
     if (!deviceAllocated) {
-        allocateDeviceMem();
+        dataDevice.allocate();
     }
-    cudaMemcpy(dataDevice.get(), dataHost.get(),
-            shape.width * shape.height * sizeof(float), cudaMemcpyHostToDevice);
+    dataDevice.write(dataHost.get());
 }
 
 Matrix::Row::Row(int index, Matrix* parent) :
@@ -32,7 +50,7 @@ Matrix::Row::Row(int index, Matrix* parent) :
 { }
 
 float& Matrix::Row::operator[](const int ind) {
-    return parent->dataHost.get()[ind + parent->shape.width*index];
+    return parent->dataHost.get()[ind + parent->shape.x*index];
 }
 
 Matrix::ConstRow::ConstRow(int index, const Matrix* parent) :
@@ -40,7 +58,7 @@ Matrix::ConstRow::ConstRow(int index, const Matrix* parent) :
 { }
 
 const float& Matrix::ConstRow::operator[](const int ind) {
-    return parent->dataHost.get()[ind + parent->shape.width*index];
+    return parent->dataHost.get()[ind + parent->shape.x*index];
 }
 
 Matrix::Row Matrix::operator[](const int index) {

@@ -4,27 +4,39 @@
 #include <memory>
 
 struct Shape {
-    int width;
-    int height;
+    int x;
+    int y;
+    Shape(int x, int y) : x(x), y(y) {}
 };
 
+class MatrixBuffer {
+private:
+    std::unique_ptr<float> data;
+    bool allocated;
 
+public:
+    Shape shape;
+
+    MatrixBuffer(Shape shape);
+    MatrixBuffer(MatrixBuffer &&buf);
+
+    void allocate();
+    void write(float* from);
+    void read(float* to);
+    bool isAllocated() { return allocated; }
+};
 
 class Matrix {
 private:
     bool deviceAllocated;
-    bool hostAllocated;
-
-    void allocateDeviceMem();
-    void allocateHostMem();
-
-    std::unique_ptr<float> dataDevice;
     std::unique_ptr<float> dataHost;
+    MatrixBuffer dataDevice;
 
 public:
     Shape shape;
 
     Matrix(Shape shape);
+    Matrix(MatrixBuffer &&buf);
 
     void writeThrough();
 
