@@ -1,19 +1,20 @@
 #include "matrix.h"
 #include "sigmoid.h"
+#include "relu.h"
 
 int main(void)
 {
     Shape s(3, 3);
     Matrix a(s);
     a[0][0] = 1;
-    a[0][1] = 2;
+    a[0][1] = -2;
     a[0][2] = 3;
     a[1][0] = 3;
-    a[1][1] = 2;
+    a[1][1] = -2;
     a[1][2] = 1;
     a[2][0] = 2;
     a[2][1] = 1;
-    a[2][2] = 3;
+    a[2][2] = -3;
     a.print();
     // Matrix b(s);
     // b[0][0] = -5.0/12.0;
