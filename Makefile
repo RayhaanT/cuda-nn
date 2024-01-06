@@ -41,4 +41,7 @@ clean :
 	$(RM) $(OBJS)
 	$(RM) $(TARGET)
 
+run: $(TARGET)
+	./$(TARGET)
+
 -include ${DEPENDS}

@@ -1,17 +1,14 @@
 #include "matrix.h"
-#include <utility>
+#include <iostream>
 
 MatrixBuffer::MatrixBuffer(Shape shape) :
     data(nullptr), allocated(false), shape(shape) { }
-
-MatrixBuffer::MatrixBuffer(MatrixBuffer&& buf) :
-    data(std::move(buf.data)), allocated(buf.isAllocated()), shape(buf.shape) {}
 
 void MatrixBuffer::allocate() {
     if (!allocated) {
         float* device_memory = nullptr;
         cudaMalloc(&device_memory, shape.x * shape.x * sizeof(float));
-        data = std::unique_ptr<float>(device_memory);
+        data = std::shared_ptr<float>(device_memory, [&](float* ptr){ cudaFree(ptr); });
         allocated = true;
     }
 }
@@ -24,18 +21,24 @@ void MatrixBuffer::read(float* to) {
     cudaMemcpy(to, data.get(), shape.x * shape.y * sizeof(float), cudaMemcpyDeviceToHost);
 }
 
+float* MatrixBuffer::read() {
+    float* hostBuf = new float[shape.x*shape.y];
+    read(hostBuf);
+    return hostBuf;
+}
+
 Matrix::Matrix(Shape shape) :
     deviceAllocated(false), shape(shape), dataDevice(shape)
 {
     dataHost = std::unique_ptr<float>(new float[shape.x*shape.y]);
 }
 
-Matrix::Matrix(MatrixBuffer &&buf) :
+Matrix::Matrix(MatrixBuffer buf) :
     deviceAllocated(buf.isAllocated()),
-    dataDevice(std::move(buf)),
+    dataDevice(buf),
     shape(buf.shape)
 {
-    dataHost = std::unique_ptr<float>(new float[shape.x*shape.y]);
+    dataHost = std::unique_ptr<float>(dataDevice.read());
 }
 
 void Matrix::writeThrough() {
@@ -43,6 +46,15 @@ void Matrix::writeThrough() {
         dataDevice.allocate();
     }
     dataDevice.write(dataHost.get());
+}
+
+void Matrix::print() {
+    for (int y = 0; y < shape.y; y++) {
+        for (int x = 0; x < shape.x; x++) {
+            std::cout << (*this)[y][x] << " ";
+        }
+        std::cout << std::endl;
+    }
 }
 
 Matrix::Row::Row(int index, Matrix* parent) :

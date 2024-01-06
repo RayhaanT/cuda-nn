@@ -7,23 +7,27 @@ struct Shape {
     int x;
     int y;
     Shape(int x, int y) : x(x), y(y) {}
+    bool operator==(Shape const& rhs) const {
+        return x == rhs.x && y == rhs.y;
+    }
 };
 
 class MatrixBuffer {
 private:
-    std::unique_ptr<float> data;
+    std::shared_ptr<float> data;
     bool allocated;
 
 public:
     Shape shape;
 
     MatrixBuffer(Shape shape);
-    MatrixBuffer(MatrixBuffer &&buf);
 
     void allocate();
     void write(float* from);
     void read(float* to);
+    float* read();
     bool isAllocated() { return allocated; }
+    float* get() { return data.get(); }
 };
 
 class Matrix {
@@ -36,9 +40,15 @@ public:
     Shape shape;
 
     Matrix(Shape shape);
-    Matrix(MatrixBuffer &&buf);
+    Matrix(MatrixBuffer buf);
 
     void writeThrough();
+    void print();
+
+    operator MatrixBuffer&() {
+        writeThrough();
+        return dataDevice;
+    }
 
     struct Row {
     private:
@@ -56,7 +66,6 @@ public:
         ConstRow(int index, const Matrix* parent);
         const float& operator[](const int index);
     };
-    friend Row;
 
     Row operator[](const int index);
     const ConstRow operator[](const int index) const;
