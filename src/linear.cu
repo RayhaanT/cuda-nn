@@ -4,8 +4,8 @@
 
 __global__ void linearForward( float* W, float* A, float* Z, float* b,
 									int Wx, int Wy,
-									int Ax, int Ay) {
-
+									int Ax, int Ay)
+{
 	int row = blockIdx.y * blockDim.y + threadIdx.y;
 	int col = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -132,7 +132,7 @@ MatrixBuffer& Linear::forward(MatrixBuffer& A) {
 
 MatrixBuffer& Linear::backprop(MatrixBuffer& dZ, float learningRate) {
 	dim3 blockSize(8, 8);
-	dim3 blockNum(	(A.shape.x + blockSize.x - 1) / blockSize.x,
+	dim3 blockNum((A.shape.x + blockSize.x - 1) / blockSize.x,
 						(A.shape.y + blockSize.y - 1) / blockSize.y);
 	linearBackprop<<<blockNum, blockSize>>>( W.get(), dZ.get(), dA.get(),
 												   W.shape.x, W.shape.y,
@@ -145,8 +145,8 @@ MatrixBuffer& Linear::backprop(MatrixBuffer& dZ, float learningRate) {
 
 void Linear::updateWeights(MatrixBuffer& dZ, float learningRate) {
 	dim3 blockSize(8, 8);
-	dim3 blockNum(	(W.shape.x + blockSize.x - 1) / blockSize.x,
-						(W.shape.y + blockSize.y - 1) / blockSize.y);
+	dim3 blockNum((W.shape.x + blockSize.x - 1) / blockSize.x,
+				  (W.shape.y + blockSize.y - 1) / blockSize.y);
 	linearUpdateWeights<<<blockNum, blockSize>>>(dZ.get(), A.get(), W.get(),
 													   dZ.shape.x, dZ.shape.y,
 													   A.shape.x, A.shape.y,
@@ -155,7 +155,7 @@ void Linear::updateWeights(MatrixBuffer& dZ, float learningRate) {
 
 void Linear::updateBias(MatrixBuffer& dZ, float learningRate) {
 	dim3 blockSize(256);
-	dim3 blockNum( (dZ.shape.y * dZ.shape.x + blockSize.x - 1) / blockSize.x);
+	dim3 blockNum((dZ.shape.y * dZ.shape.x + blockSize.x - 1) / blockSize.x);
 	linearUpdateBias<<<blockNum, blockSize>>>(dZ.get(), b.get(),
 													dZ.shape.x, dZ.shape.y,
 													b.shape.x, learningRate);
