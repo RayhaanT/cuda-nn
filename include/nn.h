@@ -21,6 +21,7 @@ public:
     void backprop(MatrixBuffer predictions, MatrixBuffer target);
 
     void addLayer(std::shared_ptr<Layer> layer);
+    void addLayer(Layer* layer);
     std::vector<Layer*> getLayers() const;
 };
 

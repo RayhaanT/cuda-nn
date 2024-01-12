@@ -1,4 +1,5 @@
 #include "nn.h"
+#include <memory>
 
 NeuralNetwork::NeuralNetwork(float learningRate, Shape shape) :
 	learningRate(learningRate), Y(shape), dY(shape)
@@ -8,6 +9,10 @@ NeuralNetwork::NeuralNetwork(float learningRate, Shape shape) :
 
 void NeuralNetwork::addLayer(std::shared_ptr<Layer> layer) {
 	this->layers.push_back(layer);
+}
+
+void NeuralNetwork::addLayer(Layer* layer) {
+    this->layers.emplace_back(layer);
 }
 
 MatrixBuffer NeuralNetwork::inference(MatrixBuffer X) {

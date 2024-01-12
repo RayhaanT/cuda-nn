@@ -64,7 +64,7 @@ public:
         const Matrix* parent;
     public:
         ConstRow(int index, const Matrix* parent);
-        const float& operator[](const int index);
+        float operator[](const int index) const;
     };
 
     Row operator[](const int index);

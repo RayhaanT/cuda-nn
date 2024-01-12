@@ -69,7 +69,7 @@ Matrix::ConstRow::ConstRow(int index, const Matrix* parent) :
     index(index), parent(parent)
 { }
 
-const float& Matrix::ConstRow::operator[](const int ind) {
+float Matrix::ConstRow::operator[](const int ind) const {
     return parent->dataHost.get()[ind + parent->shape.x*index];
 }
 
