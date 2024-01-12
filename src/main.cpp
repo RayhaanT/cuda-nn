@@ -7,7 +7,7 @@
 
 #include <iostream>
 
-#define EPOCHS 100
+#define EPOCHS 1000
 
 float computeAccuracy(const Matrix& predictions, const Matrix& targets) {
 	int m = predictions.shape.x;
@@ -26,14 +26,14 @@ float computeAccuracy(const Matrix& predictions, const Matrix& targets) {
 int main() {
 	srand(time(NULL));
 
-	Dataset dataset(2, 100, 1);
+	Dataset dataset(2, 100, 21);
 	BCECost bce_cost;
 
-	NeuralNetwork nn(0.01, Shape(1, 1));
-	nn.addLayer(new Linear(Shape(2, 30), Shape(30, 1)));
-	nn.addLayer(new Relu(Shape(30, 1)));
-	nn.addLayer(new Linear(Shape(30, 1), Shape(1, 1)));
-	nn.addLayer(new Sigmoid(Shape(1, 1)));
+	NeuralNetwork nn(0.01, Shape(100, 1));
+	nn.addLayer(new Linear(Shape(2, 30), Shape(100, 30)));
+	nn.addLayer(new Relu(Shape(100, 30)));
+	nn.addLayer(new Linear(Shape(30, 1), Shape(100, 1)));
+	nn.addLayer(new Sigmoid(Shape(100, 1)));
 
 	// Training
 	for (int epoch = 0; epoch <= EPOCHS; epoch++) {

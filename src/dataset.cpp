@@ -28,8 +28,6 @@ Dataset::Dataset(int dim, int batchsz, int batchn) :
 
 		batches[i].writeThrough();
 		targets[i].writeThrough();
-        batches[i].print();
-        targets[i].print();
 	}
 }
 
